@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register — EbookTeacher</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin:0;
+      font-family:'Inter',sans-serif;
+      background:#f8f9fa;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+    .card {
+      background:white;
+      padding:30px;
+      border-radius:16px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.15);
+      width:100%;
+      max-width:380px;
+      text-align:center;
+    }
+    h1 { margin-bottom:8px;color:#111827;font-size:22px; }
+    p.subtitle { font-size:14px;color:#666;margin-bottom:20px; }
+
+    .input-group { position:relative; margin-bottom:14px; }
+    input {
+      width:100%;
+      padding:12px;
+      border:1px solid #ccc;
+      border-radius:8px;
+      font-size:15px;
+    }
+    .toggle-password {
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform:translateY(-50%);
+      cursor:pointer;
+      color:#666;
+      font-size:18px;
+    }
+    .toggle-password:hover { color:#111; }
+
+    button {
+      width:100%;
+      padding:12px;
+      background-color:#f75454;
+      color:white;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background-color:#d84343; }
+
+    #message { margin-top:12px;font-size:14px;font-weight:bold; }
+    .link { margin-top:14px;font-size:13px; }
+    .link a { color:#f75454;text-decoration:none;font-weight:bold; }
+    .link a:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Sign Up</h1>
+    <p class="subtitle">Listen & learn from millions of books 📚</p>
+
+    <div class="input-group">
+      <input type="text" id="name" placeholder="Full Name" />
+    </div>
+    <div class="input-group">
+      <input type="email" id="email" placeholder="Email" />
+    </div>
+
+    <!-- ✅ Password with eye toggle -->
+    <div class="input-group">
+      <input type="password" id="password" placeholder="Password" />
+      <i class="fa-solid fa-eye toggle-password" id="togglePassword"></i>
+    </div>
+
+    <button id="registerBtn">Register</button>
+    <p id="message"></p>
+
+    <div class="link">Already have an account? <a href="login.html">Login</a></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdDkomwDZ1EAAysrH9XbMq5viRf2deSS0",
+      authDomain: "ebookteacher-ba882.firebaseapp.com",
+      projectId: "ebookteacher-ba882",
+      storageBucket: "ebookteacher-ba882.appspot.com",
+      messagingSenderId: "475858350442",
+      appId: "1:475858350442:web:4acebed9cf61c80ee6b513",
+      measurementId: "G-7JNBPQ6Y26"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const msg = document.getElementById("message");
+    const btn = document.getElementById("registerBtn");
+
+    async function signup() {
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      msg.style.color = "red";
+      if (!name) { msg.textContent = "Please enter your name!"; return; }
+      if (!email) { msg.textContent = "Please enter your email!"; return; }
+      if (!password) { msg.textContent = "Please enter your password!"; return; }
+
+      btn.disabled = true;
+      msg.textContent = "Registering...";
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await updateProfile(user, { displayName: name });
+
+        // ✅ Save current user id for premium system
+        localStorage.setItem("currentUserId", user.uid);
+
+        msg.style.color = "green";
+        msg.textContent = "Registered successfully!";
+        setTimeout(()=>window.location.href="mobile.html",2000);
+      } catch (error) {
+        msg.style.color = "red";
+        msg.textContent = error.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener("click", signup);
+
+    // ✅ Toggle password visibility
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    togglePassword.addEventListener("click", () => {
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        togglePassword.classList.remove("fa-eye");
+        togglePassword.classList.add("fa-eye-slash");
+      } else {
+        passwordInput.type = "password";
+        togglePassword.classList.remove("fa-eye-slash");
+        togglePassword.classList.add("fa-eye");
+      }
+    });
+  </script>
+</body>
+</html>

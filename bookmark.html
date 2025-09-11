@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmarks — EbookAura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--brand:#f75454}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:#f5f6f8}
+
+    /* header */
+    .header{position:sticky;top:0;z-index:5;background:var(--brand);color:#fff;
+      display:flex;justify-content:space-between;align-items:center;padding:14px 18px;
+      box-shadow:0 4px 12px rgba(0,0,0,.18)}
+    .title{font-size:22px;font-weight:900}
+    .back{background:#fff;color:var(--brand);border:none;border-radius:22px;
+      padding:8px 14px;font-weight:800;cursor:pointer}
+
+    /* list */
+    .list{max-width:720px;margin:18px auto;display:flex;flex-direction:column;gap:14px;padding:0 12px}
+    .card{
+      background:#fff;border-radius:14px;box-shadow:0 6px 14px rgba(0,0,0,.08);
+      padding:12px;display:grid;grid-template-columns:90px 1fr auto;gap:12px;align-items:center
+    }
+    .cover{width:90px;height:120px;border-radius:8px;object-fit:cover;background:#eee}
+    .info{min-width:0}
+    .book-title{font-weight:900;font-size:16px;line-height:1.2;margin-bottom:6px;word-wrap:break-word}
+    .book-author{color:#666;font-size:14px}
+    .btns{display:flex;flex-direction:column;gap:8px}
+    .btn{border:none;border-radius:8px;padding:8px 12px;font-weight:800;color:#fff;cursor:pointer}
+    .btn-read{background:#3498db}
+    .btn-remove{background:#e74c3c}
+    .empty{color:#666;text-align:center;margin-top:40px}
+
+    /* stack buttons under on very small screens */
+    @media (max-width: 360px){
+      .card{grid-template-columns:90px 1fr;grid-auto-rows:auto}
+      .btns{grid-column:1 / -1;flex-direction:row}
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="title">Bookmarks</div>
+    <button class="back" onclick="history.back()">Back</button>
+  </header>
+
+  <div id="list" class="list"></div>
+  <p id="empty" class="empty">No bookmarks yet</p>
+
+  <script>
+    const norm = s => (s||"").toLowerCase().trim();
+    function getBookmarks(){
+      try { return JSON.parse(localStorage.getItem("bookmarks")) || []; }
+      catch(e){ return []; }
+    }
+    function setBookmarks(arr){
+      localStorage.setItem("bookmarks", JSON.stringify(arr));
+    }
+    // remove duplicates by (title, author)
+    function dedupe(arr){
+      const seen = new Set();
+      return arr.filter(b=>{
+        const key = norm(b.title)+"|"+norm(b.author);
+        if(seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function load(){
+      let items = dedupe(getBookmarks());
+      setBookmarks(items); // keep storage clean
+
+      const list = document.getElementById('list');
+      const empty = document.getElementById('empty');
+      list.innerHTML = '';
+
+      if(items.length === 0){
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      items.forEach((b, i)=>{
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img class="cover" src="${b.cover || ''}" alt="${b.title}">
+          <div class="info">
+            <div class="book-title">${b.title}</div>
+            <div class="book-author">By ${b.author || 'Unknown'}</div>
+          </div>
+          <div class="btns">
+            <button class="btn btn-read" onclick="readBook('${encodeURIComponent(b.link)}')">📖 Read Book</button>
+            <button class="btn btn-remove" onclick="removeBm(${i})">Unbookmark</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function readBook(link){
+      const url = decodeURIComponent(link);
+      if(url) window.open(url, "_blank"); 
+      else alert("❌ No PDF link available for this book.");
+    }
+
+    function removeBm(index){
+      const items = getBookmarks();
+      items.splice(index,1);
+      setBookmarks(items);
+      load();
+    }
+
+    load();
+  </script>
+</body>
+</html>

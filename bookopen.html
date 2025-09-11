@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book — EbookAura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(90deg, #f75454, #ff7a7a);
+      color: #fff;
+      padding: 16px 22px;
+      font-weight: 900;
+      font-size: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .back-btn {
+      background: #fff;
+      color: #f75454;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+      background: #ffe3e3;
+      transform: translateY(-2px);
+    }
+
+    /* Book Card */
+    .book-container {
+      max-width: 420px;
+      margin: 0 auto;              /* ✅ Removed 40px gap */
+      padding: 20px;              /* ✅ Small padding inside */
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+    .book-container img {
+      width: 200px;
+      height: 280px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+    .book-container img:hover {
+      transform: scale(1.05);
+    }
+    .book-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #111;
+    }
+    .book-author {
+      font-size: 15px;
+      color: #777;
+      margin-bottom: 22px;
+    }
+
+    /* Buttons */
+    .action-btn {
+      display: block;
+      width: 100%;
+      margin: 12px auto;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      transition: all 0.3s ease;
+      font-size: 15px;
+    }
+    .download-btn {
+      background: linear-gradient(90deg, #3498db, #217dbb);
+      box-shadow: 0 4px 12px rgba(52,152,219,0.4);
+    }
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(52,152,219,0.5);
+    }
+    .bookmark-btn {
+      background: linear-gradient(90deg, #f75454, #d84343);
+      box-shadow: 0 4px 12px rgba(247,84,84,0.4);
+    }
+    .bookmark-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(247,84,84,0.5);
+    }
+    .bookmark-btn[disabled] {
+      background: #999;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* ⭐ Rating */
+    .rating-container {
+      margin: 15px 0;
+      text-align: center;
+    }
+    .stars {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .star {
+      font-size: 28px;
+      cursor: pointer;
+      color: #ccc;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .star:hover,
+    .star.selected {
+      color: #f7b500;
+      transform: scale(1.2);
+    }
+    .rating-message {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>📚 Book Details</div>
+    <button class="back-btn" onclick="history.back()">← Back</button>
+  </div>
+
+  <div class="book-container">
+    <img id="bookImg" src="" alt="Book Cover">
+
+    <!-- ⭐ Rating -->
+    <div class="rating-container">
+      <div class="stars" id="stars">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+      </div>
+      <div id="ratingMessage" class="rating-message"></div>
+    </div>
+
+    <div id="bookTitle" class="book-title"></div>
+    <div id="bookAuthor" class="book-author"></div>
+
+    <!-- Read Online Button -->
+    <button class="action-btn download-btn" onclick="readOnline()">📖 Read Online</button>
+
+    <!-- Bookmark Button -->
+    <button id="bookmarkBtn" class="action-btn bookmark-btn" onclick="addBookmark()">📌 Add Bookmark</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdDkomwDZ1EAAysrH9XbMq5viRf2deSS0",
+      authDomain: "ebookteacher-ba882.firebaseapp.com",
+      projectId: "ebookteacher-ba882",
+      storageBucket: "ebookteacher-ba882.appspot.com",
+      messagingSenderId: "475858350442",
+      appId: "1:475858350442:web:4acebed9cf61c80ee6b513",
+      measurementId: "G-7JNBPQ6Y26"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Book details
+    const urlParams = new URLSearchParams(window.location.search);
+    const title = urlParams.get("title");
+    const author = urlParams.get("author") || urlParams.get("desc") || "Unknown";
+    const cover = urlParams.get("img");
+    const onlineLink = urlParams.get("link");
+
+    document.getElementById("bookTitle").textContent = title;
+    document.getElementById("bookAuthor").textContent = author;
+    document.getElementById("bookImg").src = cover;
+
+    const bookmarkBtn = document.getElementById("bookmarkBtn");
+
+    // ⭐ Rating
+    let selectedRating = 0;
+    const stars = document.querySelectorAll(".star");
+
+    stars.forEach(star => {
+      star.addEventListener("click", async () => {
+        selectedRating = star.dataset.value;
+
+        // Highlight stars
+        stars.forEach(s => s.classList.remove("selected"));
+        for (let i = 0; i < selectedRating; i++) {
+          stars[i].classList.add("selected");
+        }
+
+        // Save rating instantly
+        const msg = document.getElementById("ratingMessage");
+        try {
+          await addDoc(collection(db, "ratings"), {
+            bookTitle: title,
+            author: author,
+            rating: parseInt(selectedRating),
+            timestamp: serverTimestamp()
+          });
+          msg.style.color = "green";
+          msg.textContent = `You rated ${selectedRating} ★`;
+        } catch (err) {
+          msg.style.color = "red";
+          msg.textContent = "Error: " + err.message;
+        }
+      });
+    });
+
+    // Bookmarks
+    function getBookmarks() {
+      return JSON.parse(localStorage.getItem("bookmarks")) || [];
+    }
+    function saveBookmarks(list) {
+      localStorage.setItem("bookmarks", JSON.stringify(list));
+    }
+    function isBookmarked() {
+      return getBookmarks().some(b => b.title === title && b.author === author);
+    }
+    function updateBookmarkBtn() {
+      if (isBookmarked()) {
+        bookmarkBtn.textContent = "✓ Bookmarked";
+        bookmarkBtn.disabled = true;
+      } else {
+        bookmarkBtn.textContent = "📌 Add Bookmark";
+        bookmarkBtn.disabled = false;
+      }
+    }
+    function addBookmark() {
+      let bookmarks = getBookmarks();
+      if (!isBookmarked()) {
+        bookmarks.push({ title, author, cover, link: onlineLink });
+        saveBookmarks(bookmarks);
+      }
+      updateBookmarkBtn();
+    }
+    window.addBookmark = addBookmark;
+
+    function readOnline() {
+      if (onlineLink) {
+        window.open(onlineLink, "_blank");
+      } else {
+        alert("No online link available for this book.");
+      }
+    }
+    window.readOnline = readOnline;
+
+    updateBookmarkBtn();
+  </script>
+</body>
+</html>

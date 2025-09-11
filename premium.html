@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EbookTeacher — Premium Plans</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{--brand:#f75454;--brand-2:#ff8a65;--ink:#111;--muted:#666;--bg:#fafafa;--card-border:#eee;}
+    body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--ink);padding:18px;}
+    .premium-section{max-width:1100px;margin:0 auto;}
+    .premium-header{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;position:relative;}
+    .back-btn{position:absolute;left:0;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;
+      background:linear-gradient(90deg,var(--brand),var(--brand-2));color:#fff;font-size:15px;box-shadow:0 3px 8px rgba(0,0,0,0.15);
+      text-decoration:none;transition:all .2s ease;}
+    .back-btn:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.2);}
+    .premium-title{font-size:26px;font-weight:900;background:linear-gradient(90deg,var(--brand),var(--brand-2));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .divider{width:80px;height:4px;background:linear-gradient(90deg,var(--brand),var(--brand-2));margin:10px auto 12px;border-radius:12px;}
+    .premium-subtitle{text-align:center;color:var(--muted);font-size:15px;margin-bottom:20px;}
+
+    .premium-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:26px;}
+    .premium-card{background:#fff;border-radius:14px;border:1px solid var(--card-border);
+      box-shadow:0 8px 20px rgba(23,23,23,0.05);overflow:hidden;display:flex;flex-direction:column;
+      transition:transform .22s ease,box-shadow .22s ease;}
+    .premium-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(20,20,20,0.09);}
+    .premium-media{width:100%;height:200px;object-fit:cover;display:block;}
+    .premium-info{padding:18px;display:flex;flex-direction:column;gap:10px;}
+    .premium-name{font-size:20px;font-weight:800;}
+    .premium-price{font-size:18px;color:var(--brand);font-weight:800;}
+    .premium-features{color:var(--muted);font-size:14px;line-height:1.45;}
+    .purchase-btn{background:linear-gradient(90deg,var(--brand),var(--brand-2));color:#fff;border:none;
+      padding:12px 18px;border-radius:12px;font-weight:800;cursor:pointer;transition:transform .15s ease,opacity .15s ease;}
+    .purchase-btn:hover{transform:scale(1.03);opacity:.95;}
+    .note{font-size:13px;color:#666;text-align:center;margin-top:12px;}
+  </style>
+</head>
+<body>
+  <main class="premium-section">
+    <header class="premium-header">
+      <a href="mobile.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+      <h1 class="premium-title">Premium Plans</h1>
+    </header>
+    <div class="divider"></div>
+    <p class="premium-subtitle">Choose a plan that fits your needs</p>
+
+    <section class="premium-grid">
+      <article class="premium-card">
+        <img class="premium-media" src="image copy 59.png" alt="Basic Premium">
+        <div class="premium-info">
+          <div>
+            <div class="premium-name">Basic Premium</div>
+            <div class="premium-price">₹199 / month</div>
+            <div class="premium-features">• Access to 1,000+ ebooks <br>• Ad-free reading <br>• 1 month premium</div>
+          </div>
+          <button class="purchase-btn" onclick="startPurchase('Basic Premium', 30, 199)">Purchase</button>
+        </div>
+      </article>
+
+      <article class="premium-card">
+        <img class="premium-media" src="image copy 59.png" alt="Pro Premium">
+        <div class="premium-info">
+          <div>
+            <div class="premium-name">Pro Premium</div>
+            <div class="premium-price">₹999 / year</div>
+            <div class="premium-features">• Access to 1000+ ebooks <br>• Early access to new releases <br>• 1 year premium</div>
+          </div>
+          <button class="purchase-btn" onclick="startPurchase('Pro Premium', 365, 999)">Purchase</button>
+        </div>
+      </article>
+    </section>
+
+    <p class="note">💡 After you pay via UPI, we’ll verify and activate your premium manually.</p>
+  </main>
+
+  <script>
+    // keys
+    function premiumKey(user){ return `premium_expiry__${user}`; }
+    function planKey(user){ return `premium_plan__${user}`; }
+
+    // get current user
+    function getCurrentUser(){ return localStorage.getItem('currentUserId'); }
+
+    // Start purchase flow
+    function startPurchase(plan, days, amount){
+      let user = getCurrentUser();
+      if(!user){
+        const goLogin = confirm("You must be logged in to purchase.\nPress OK to go to Login page.\nCancel to use a test user.");
+        if(goLogin){ window.location.href = "login.html"; return; }
+        else {
+          const temp = prompt("Enter a temporary test user id (for local testing).");
+          if(!temp) return;
+          localStorage.setItem('currentUserId', temp);
+          user = temp;
+        }
+      }
+
+      // ✅ Put your UPI ID here
+      const upiId = "mramajogachari63@icici"; // Example: 9876543210@paytm
+      const upiDeepLink = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent('EbookTeacher')}&am=${amount}&cu=INR&tn=${encodeURIComponent(plan)}`;
+
+      // Open UPI app
+      window.location.href = upiDeepLink;
+
+      // ⚠️ No auto-activation!
+      // You must manually verify payment (check your bank or later use server-side verification)
+      // Then activate premium by setting expiry in Firestore or admin panel.
+    }
+  </script>
+</body>
+</html>

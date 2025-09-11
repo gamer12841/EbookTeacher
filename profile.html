@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — EbookTeacher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family:'Inter',sans-serif; background:#f8f9fa; margin:0; padding:0; }
+    .header { background:#000; color:#fff; padding:14px 20px; font-size:20px; display:flex; justify-content:space-between; align-items:center; font-weight:900; position:sticky; top:0; z-index:10; box-shadow:0 4px 12px rgba(0,0,0,0.25);}
+    .header .app-name { font-size:22px; font-weight:900; }
+    .header .app-name .white { color:#fff; }
+    .header .app-name .red { color:#f75454; }
+    .header .back-btn { background:#f75454; color:#fff; font-size:14px; font-weight:700; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; transition:0.2s;}
+    .header .back-btn:hover { background:#d84343; }
+    .profile-container { padding:25px 20px; text-align:center; }
+    .profile-img { width:130px; height:130px; border-radius:50%; object-fit:cover; margin-bottom:20px; box-shadow:0 6px 16px rgba(0,0,0,0.2); border:4px solid #fff; }
+    .profile-name { font-size:24px; font-weight:900; margin-bottom:12px; color:#111; }
+    .profile-info { font-size:16px; color:#444; margin:12px auto; display:flex; justify-content:center; align-items:center; gap:10px; background:#fff; padding:10px 16px; border-radius:12px; max-width:320px; box-shadow:0 3px 10px rgba(0,0,0,0.08);}
+    .edit-icon { font-size:16px; cursor:pointer; color:#f75454; transition:0.2s;}
+    .edit-icon:hover { transform:scale(1.2); }
+    .logout-btn { margin-top:20px; background:#000; color:#fff; padding:12px 20px; border:none; border-radius:8px; font-weight:700; cursor:pointer; transition:0.2s;}
+    .logout-btn:hover { background:#333; }
+    .modal { display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; }
+    .modal-content { background:#fff; padding:20px; border-radius:12px; width:90%; max-width:400px; text-align:left; }
+    .modal h3 { margin-top:0; color:#111; }
+    .modal input { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:8px; }
+    .modal .btn { display:inline-block; margin-top:12px; padding:10px 16px; border:none; border-radius:8px; font-weight:600; cursor:pointer; }
+    .modal .save-btn { background:#f75454; color:#fff; }
+    .modal .close-btn { background:#ccc; margin-left:10px; }
+    #modalMsg { margin-top:8px; font-size:14px; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="header">
+    <div class="app-name"><span class="white">Ebook</span><span class="red">Teacher</span></div>
+    <a href="mobile.html"><button class="back-btn">⬅ Back</button></a>
+  </div>
+
+  <!-- Profile -->
+  <div class="profile-container">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="profile-img">
+    <div id="profileName" class="profile-name">User Name</div>
+
+    <div class="profile-info">
+      <span id="profileEmail">user@email.com</span>
+      <span class="edit-icon" onclick="openModal('email')">✏</span>
+    </div>
+
+    <div class="profile-info">
+      <span>********</span>
+      <span class="edit-icon" onclick="openModal('password')">✏</span>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Edit</h3>
+      <input id="currentInput" placeholder="">
+      <input id="newInput" placeholder="">
+      <button class="btn save-btn" onclick="saveChanges()">Save</button>
+      <button class="btn close-btn" onclick="closeModal()">Cancel</button>
+      <p id="modalMsg"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdDkomwDZ1EAAysrH9XbMq5viRf2deSS0",
+      authDomain: "ebookteacher-ba882.firebaseapp.com",
+      projectId: "ebookteacher-ba882",
+      storageBucket: "ebookteacher-ba882.appspot.com",
+      messagingSenderId: "475858350442",
+      appId: "1:475858350442:web:4acebed9cf61c80ee6b513",
+      measurementId: "G-7JNBPQ6Y26"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Load profile
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("profileName").textContent = user.displayName || "User";
+        document.getElementById("profileEmail").textContent = user.email;
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    // Logout
+    window.logout = () => {
+      signOut(auth).then(() => window.location.href="register.html");
+    };
+
+    // Modal logic
+    let editType = "";
+    window.openModal = (type) => {
+      editType = type;
+      document.getElementById("editModal").style.display = "flex";
+      const title = type==="email" ? "Edit Email" : "Edit Password";
+      document.getElementById("modalTitle").textContent = title;
+
+      if(type==="email") {
+        document.getElementById("currentInput").style.display = "none"; // hide current email input
+        document.getElementById("newInput").type = "email";
+        document.getElementById("newInput").placeholder = "New Email";
+      } else {
+        document.getElementById("currentInput").style.display = "block";
+        document.getElementById("currentInput").type = "password";
+        document.getElementById("currentInput").placeholder = "Current Password";
+        document.getElementById("newInput").type = "password";
+        document.getElementById("newInput").placeholder = "New Password";
+      }
+
+      document.getElementById("currentInput").value = "";
+      document.getElementById("newInput").value = "";
+      document.getElementById("modalMsg").textContent = "";
+    };
+
+    window.closeModal = () => { document.getElementById("editModal").style.display="none"; };
+
+    window.saveChanges = async () => {
+      const user = auth.currentUser;
+      const currentVal = document.getElementById("currentInput").value.trim();
+      const newVal = document.getElementById("newInput").value.trim();
+      const msg = document.getElementById("modalMsg");
+
+      if (!user) return;
+
+      if(editType==="email") {
+        // Require current email verification
+        if(!user.emailVerified){
+          msg.style.color="red";
+          msg.textContent="Please verify your current email first!";
+          return;
+        }
+
+        try {
+          await updateEmail(user, newVal);
+          await sendEmailVerification(user); // send verification email after change
+          msg.style.color="green";
+          msg.textContent="Email updated! Verification sent to new email.";
+          document.getElementById("profileEmail").textContent = newVal;
+          setTimeout(closeModal,1500);
+        } catch(e){
+          msg.style.color="red";
+          msg.textContent=e.message;
+        }
+      } else {
+        // Password change
+        if(!currentVal || !newVal){
+          msg.style.color="red"; msg.textContent="Fill both fields"; return;
+        }
+        try{
+          const credential = EmailAuthProvider.credential(user.email, currentVal);
+          await reauthenticateWithCredential(user, credential);
+          await updatePassword(user,newVal);
+          msg.style.color="green"; msg.textContent="Password updated!";
+          setTimeout(closeModal,1500);
+        } catch(e){
+          msg.style.color="red"; msg.textContent=e.message;
+        }
+      }
+    };
+  </script>
+</body>
+</html>

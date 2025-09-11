@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EbookAura — Search Books</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{ --brand:#f75454; --ink:#111; --muted:#666; --bg:#fff; }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);padding-bottom:78px;padding-top:65px;}
+
+    /* NAVBAR */
+    .navbar{display:flex;justify-content:space-between;align-items:center;
+      background:#111;color:#fff;padding:15px 20px;position:fixed;top:0;left:0;right:0;z-index:300;}
+    .logo{font-size:22px;font-weight:800;}
+    .highlight{color:var(--brand);}
+    .menu-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:28px;}
+
+    /* Sidebar */
+    /* Sidebar */
+.sidebar{
+  position:fixed;
+  top:0;              /* ✅ cover entire screen */
+  bottom:0;
+  left:-260px;
+  width:260px;
+  background:#111;
+  color:#fff;
+  transition:left .3s ease;
+  z-index:20000;      /* ✅ way higher than bottom nav */
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;    /* ✅ scroll if content too long */
+}
+    .sidebar.active{left:0;}
+    .sidebar h3{margin-bottom:20px;font-size:22px;font-weight:800;}
+    .sidebar a{display:flex;align-items:center;gap:12px;padding:14px 0;color:#fff;text-decoration:none;
+      border-bottom:1px solid rgba(255,255,255,0.1);font-size:18px;}
+    .sidebar a:hover{color:var(--brand);}
+    .sidebar-close{position:absolute;top:15px;right:15px;font-size:24px;background:none;border:none;cursor:pointer;color:#fff;}
+
+    /* SEARCH BOX */
+    .search-box{padding:12px 20px;background:#fafafa;border-bottom:1px solid #eee;position:sticky;top:65px;z-index:250;}
+    .search-box input{width:100%;padding:12px 14px;border:1px solid #ccc;border-radius:10px;font-size:16px;}
+
+    /* BOOKS */
+    .books-section{padding:20px;}
+    .books-title{font-size:22px;font-weight:800;margin-bottom:15px;}
+    .books-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+    .book{background:#fff;border:1px solid #eee;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.06);
+      overflow:hidden;transition:transform .2s;text-align:center;cursor:pointer;position:relative;}
+    .book img{width:100%;height:180px;object-fit:contain;background:#f9f9f9;border-bottom:1px solid #eee;display:block;padding:6px;}
+    .book-info{padding:8px;}
+    .book-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+    .book-desc{font-size:12px;color:var(--muted);line-height:1.3;}
+    .premium-tag{background:var(--brand);color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;position:absolute;top:10px;right:10px;z-index:20;}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:70px;background:#fff;border-top:1px solid #ddd;
+      display:flex;justify-content:space-around;align-items:center;box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:500;}
+    .bottom-nav a{flex:1;text-align:center;text-decoration:none;color:#444;font-size:14px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+    .bottom-nav a i{font-size:24px;}
+    .bottom-nav a.active{color:var(--brand);}
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">Ebook<span class="highlight">Teacher</span></div>
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+  </header>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-close" onclick="toggleMenu()">✖</button>
+    <h3>Menu</h3>
+    <a href="mobile.html"><i class="fa-solid fa-house"></i> Home</a>
+    <a href="book.html"><i class="fa-solid fa-magnifying-glass"></i> Search Books</a>
+    <a href="bookmark.html"><i class="fa-solid fa-bookmark"></i> Bookmarks</a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    <a href="premium.html"><i class="fa-solid fa-crown"></i> Premium</a>
+    <a href="feedback.html"><i class="fa-solid fa-comment-dots"></i> Feedback</a>
+    <a href="#" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search books...">
+  </div>
+
+  <!-- BOOKS -->
+  <section class="books-section">
+    <h2 class="books-title">Search Books</h2>
+    <div class="books-grid" id="booksGrid"></div>
+  </section>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="mobile.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="book.html" class="active"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
+    <a href="bookmark.html"><i class="fa-solid fa-bookmark"></i><span>Bookmarks</span></a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdDkomwDZ1EAAysrH9XbMq5viRf2deSS0",
+      authDomain: "ebookteacher-ba882.firebaseapp.com",
+      projectId: "ebookteacher-ba882",
+      storageBucket: "ebookteacher-ba882.appspot.com",
+      messagingSenderId: "475858350442",
+      appId: "1:475858350442:web:4acebed9cf61c80ee6b513",
+      measurementId: "G-7JNBPQ6Y26"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // ✅ Logout
+    window.logoutUser = async function(){
+      try {
+        await signOut(auth);
+        localStorage.removeItem("currentUserId");
+        alert("Logged out successfully!");
+        window.location.href = "index.html";
+      } catch(err){ alert("Logout failed: " + err.message); }
+    }
+
+    // ✅ Sidebar toggle
+    window.toggleMenu = function(){
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+
+    // Helpers for premium
+    function premiumKey(user){ return `premium_expiry__${user}`; }
+    function planKey(user){ return `premium_plan__${user}`; }
+    function getCurrentUser(){ return localStorage.getItem('currentUserId'); }
+
+    function hasPremium(){
+      const user = getCurrentUser();
+      if(!user) return false;
+      const exp = localStorage.getItem(premiumKey(user));
+      if(!exp) return false;
+      const ts = parseInt(exp, 10);
+      if(isNaN(ts)) { localStorage.removeItem(premiumKey(user)); localStorage.removeItem(planKey(user)); return false; }
+      if(Date.now() < ts) return true;
+      localStorage.removeItem(premiumKey(user));
+      localStorage.removeItem(planKey(user));
+      return false;
+    }
+
+    // ✅ Books Data (shortened for example)
+    const booksData = [
+    {title:"Rich Dad Poor Dad", desc:"By Robert Kiyosaki", img:"image.png", link:"https://drive.google.com/file/d/0B1dv5sqSPsPbdnd4UlZ6VE1kSDA/view?resourcekey=0--phOyjhQe5k9NoCjuOxhSQ", premium:true},
+      {title:"The Intelligent Investor", desc:"By Benjamin Graham", img:"image copy.png", link:"https://drive.google.com/file/d/0BwEKYdmMaJIGaEtVYkROc0lLSU0/view?resourcekey=0-aktZW2hwBdzp9XhoFRSsvA"},
+      {title:"Atomic Habits", desc:"By James Clear", img:"image copy 3.png", link:"https://drive.google.com/file/d/1eAZMdXO-Zn4_90TV365KMpIqfxUy7J0t/view"},
+      {title:"Start With Why", desc:"By Simon Sinek", img:"image copy 9.png", link:"https://drive.google.com/file/d/0B_MB6KFfOHp2S0MwNFVHV0lsTzg/view?resourcekey=0-x2B_gh_qBXWUc08Xgvm8xw", premium:true},
+      {title:"Crushing It!", desc:"By Gary Vaynerchuk", img:"image copy 10.png", link:"https://linguisticstudentindonesia.wordpress.com/wp-content/uploads/2020/05/gary-vaynerchuk-crushing-it-how-great-entrepreneurs-build-their-business-and-influence-and-how-you-can-too-harper-business-2018.pdf"},
+      {title:"Tools of Titans", desc:"By Tim Ferriss", img:"image copy 11.png", link:"https://cdn.bookey.app/files/pdf/book/en/tools-of-titans.pdf"},
+      {title:"Principles", desc:"By Ray Dalio", img:"image copy 12.png", link:"https://uploads-ssl.webflow.com/5dfc6b53305f515787db819a/5e035622ed2a277eb557c13a_Principles%20-%20Dalio%2C%20Ray.pdf", premium:true},
+      {title:"The 4-Hour Workweek", desc:"By Tim Ferriss", img:"image copy 13.png", link:"https://tim.blog/wp-content/uploads/2014/10/the-4-hour-workweek-expanded-and-updated-by-timothy-ferriss.pdf"},
+      {title:"The E-Myth Revisited", desc:"By Michael E. Gerber", img:"image copy 14.png", link:"https://ia902800.us.archive.org/21/items/TheEMythRevisitedMichaelE.Gerber/The%20E-Myth%20Revisited%20-%20Michael%20E.%20Gerber.pdf"},
+      {title:"Drive", desc:"By Daniel H. Pink", img:"image copy 15.png", link:"https://drive.google.com/file/d/1Ayazn37SF6DdWAYZgLXtxV3nTIOE2tnG/view"},
+      {title:"Outliers", desc:"By Malcolm Gladwell", img:"image copy 16.png", link:"https://drive.google.com/file/d/1AXQcWpdP4x4Z6UF3TtGJMCDgs0PsV_uF/edit"},
+      {title:"Grit", desc:"By Angela Duckworth", img:"image copy 17.png", link:"https://drive.google.com/file/d/0Bz3TcJSqzAPBUm5VVjBnbl9OTjA/edit?resourcekey=0-0Frq4qIgaV0IU2zVC0Woxg", premium:true},
+      {title:"Mindset", desc:"By Carol Dweck", img:"image copy 18.png", link:"https://adrvantage.com/wp-content/uploads/2023/02/Mindset-The-New-Psychology-of-Success-Dweck.pdf"},
+      {title:"Deep Work", desc:"By Cal Newport", img:"image copy 19.png", link:"https://writemac.com/wp-content/uploads/2021/06/Deep-Work-by-Cal-Newport.pdf"},
+      {title:"Essentialism", desc:"By Greg McKeown", img:"image copy 20.png", link:"https://heream.wordpress.com/wp-content/uploads/2017/12/greg-mckeown-essentialism-the-disciplined-pursuit.pdf", premium:true},
+      {title:"Rework", desc:"By Jason Fried", img:"image copy 21.png", link:"https://sharkinfestedcustard.wordpress.com/wp-content/uploads/2011/10/rework-jason-fried.pdf"},
+      {title:"Measure What Matters", desc:"By John Doerr", img:"image copy 22.png", link:"https://srinathramakrishnan.wordpress.com/wp-content/uploads/2020/04/brief-summary-of-measure-what-matters.pdf"},
+      {title:"The Innovator’s Dilemma", desc:"By Clayton Christensen", img:"image copy 23.png", link:"https://rudyct.com/InovBis/The%20Innovator%E2%80%99s%20Dilemma%20(Clayton%20M.%20Christensen)2000.pdf"},
+      {title:"The Hard Thing About Hard Things", desc:"By Ben Horowitz", img:"image copy 24.png", link:"https://startuphaiphong.vn/images/video/2477the-hard-thing-about-hard-things.pdf"},
+      {title:"The Art of War", desc:"By Sun Tzu", img:"image copy 25.png", link:"https://becomingaleaderblog.wordpress.com/wp-content/uploads/2015/11/sun_tzus_the_art_of_war_and_implications.pdf"},
+      {title:"Never Split The Difference", desc:"By Chris Voss", img:"image copy 26.png", link:"http://livre2.com/LIVREE/E1/E001005.pdf"},
+      {title:"Influence", desc:"By Robert Cialdini", img:"image copy 27.png", link:"https://ia800203.us.archive.org/33/items/ThePsychologyOfPersuasion/The%20Psychology%20of%20Persuasion.pdf", premium:true},
+      {title:"The 48 Laws of Power", desc:"By Robert Greene", img:"image copy 28.png", link:"https://dn790000.ca.archive.org/0/items/the48lawsofpowerpdfdrive.com/The%2048%20Laws%20Of%20Power%20%28%20PDFDrive.com%20%29.pdf"},
+      {title:"Mastery", desc:"By Robert Greene", img:"image copy 29.png", link:"https://dn790002.ca.archive.org/0/items/mastery-by-robert-greene/Mastery%20by%20Robert%20Greene.pdf"},
+      {title:"The 7 Habits of Highly Effective People", desc:"By Stephen R. Covey", img:"image copy 30.png", link:"https://icrrd.com/public/media/01-11-2020-212827The%207%20Habits%20of%20Highly%20Effective%20People.pdf"},
+      {title:"Who Moved My Cheese?", desc:"By Spencer Johnson", img:"image copy 31.png", link:"https://ia800305.us.archive.org/17/items/WhoMovedMyCheese_201604/Who%20Moved%20My%20Cheese.pdf"},
+      {title:"Switch", desc:"By Chip Heath & Dan Heath", img:"image copy 32.png", link:"http://lib.ysu.am/open_books/413227.pdf"},
+      {title:"Made to Stick", desc:"By Chip Heath & Dan Heath", img:"image copy 33.png", link:"https://32931414.s21i.faiusr.com/61/ABUIABA9GAAgpLGNuwYokOWQtwI.pdf"},
+      {title:"Purple Cow", desc:"By Seth Godin", img:"image copy 34.png", link:"https://oxteam.ir/wp-content/uploads/2017/08/Seth-Godin-Purple-Cow-Transform-Your-Business-by-Being-Remarkable.pdf", premium:true},
+      {title:"Tribes", desc:"By Seth Godin", img:"image copy 35.png", link:"https://www.books1.co.uk/pdf-read/BA/Tribes.pdf"},
+      {title:"The Dip", desc:"By Seth Godin", img:"image copy 36.png", link:"https://www.books1.co.uk/pdf-read/BA/The-Dip.pdf"},
+      {title:"Linchpin", desc:"By Seth Godin", img:"image copy 37.png", link:"https://sharkinfestedcustard.wordpress.com/wp-content/uploads/2011/10/seth-godin-linchpin.pdf"},
+      {title:"Dare to Lead", desc:"By Brené Brown", img:"image copy 38.png", link:"https://www.canyons.edu/_resources/documents/administration/chancellor/presentations/DaretoLead.pdf"},
+      {title:"The Power of Now", desc:"By Eckhart Tolle", img:"image copy 39.png", link:"https://ia800406.us.archive.org/4/items/ThePowerOfNowEckhartTolle_201806/The%20Power%20Of%20Now%20-%20Eckhart%20Tolle.pdf"},
+      {title:"Can’t Hurt Me", desc:"By David Goggins", img:"image copy 40.png", link:"https://cdn.bookey.app/pdf/book/en/can't-hurt-me.pdf"},
+      {title:"Awaken the Giant Within", desc:"By Tony Robbins", img:"image copy 41.png", link:"https://teacherspage.wordpress.com/wp-content/uploads/2012/05/awaken-the-giant-within-anthony-robbins1.pdf"},
+      {title:"Unlimited Power", desc:"By Tony Robbins", img:"image copy 42.png", link:"https://shwetathanki.wordpress.com/wp-content/uploads/2019/11/anthony-robbins-unlimited-power.pdf"},
+      {title:"Business Adventures", desc:"By John Brooks", img:"image copy 43.png", link:"https://carriere.ro/uploads/simplex/Business-Adventures_-Twelve-John-Brooks-1%20(13).pdf"},
+      {title:"The Wealth of Nations", desc:"By Adam Smith", img:"image copy 44.png", link:"https://www.rrojasdatabank.info/Wealth-Nations.pdf"},
+      {title:"Common Stocks and Uncommon Profits", desc:"By Philip Fisher", img:"image copy 45.png", link:"https://ia903405.us.archive.org/14/items/common_stocks_and_uncommon_profits_and_other_writings/common_stocks_and_uncommon_profits_and_other_writings.pdf", premium:true},
+      {title:"One Up On Wall Street", desc:"By Peter Lynch", img:"image copy 46.png", link:"https://yourknowledgedigest.wordpress.com/wp-content/uploads/2020/04/one-up-on-wall-street.pdf"},
+      {title:"The Millionaire Fastlane", desc:"By M.J. DeMarco", img:"image copy 47.png", link:"https://ia800908.us.archive.org/18/items/the-millionaire-fastlane-140113153049-phpapp01/the-millionaire-fastlane.pdf"},
+      {title:"I Will Teach You To Be Rich", desc:"By Ramit Sethi", img:"image copy 48.png", link:"https://www.iwillteachyoutoberich.com/wp-content/uploads/2023/01/IWillTeachYoutoBeRich-Chapter1.pdf"},
+      {title:"Financial Freedom", desc:"By Grant Sabatier", img:"image copy 49.png", link:"https://millennialmoney.com/wp-content/uploads/2019/02/Financial-Freedom-Grant-Sabatier.pdf"},
+      {title:"The Richest Man in Babylon", desc:"By George S. Clason", img:"image copy 50.png", link:"https://icrrd.com/public/media/16-05-2021-070111The-Richest-Man-in-Babylon.pdf"},
+      {title:"Your Money or Your Life", desc:"By Vicki Robin", img:"image copy 51.png", link:"https://files.addictbooks.com/wp-content/uploads/2023/02/Your-Money-or-Your-Life.pdf"},
+      {title:"The Science of Getting Rich", desc:"By Wallace D. Wattles", img:"image copy 52.png", link:"https://ia800805.us.archive.org/31/items/TheScienceOfGettingRich.pdf/the_science_of_getting_rich.pdf"},
+      {title:"How to Win Friends and Influence People", desc:"By Dale Carnegie", img:"image copy 53.png", link:"https://dn720004.ca.archive.org/0/items/english-collections-1/How%20To%20Win%20Friends%20And%20Influence%20People%20-%20Carnegie%2C%20Dale.pdf", premium:true},
+      {title:"The Magic of Thinking Big", desc:"By David J. Schwartz", img:"image copy 54.png", link:"https://s3.amazonaws.com/njlifehacks/The+Magic+of+Thinking+Big+-+David+J+Schwartz+-+NJlifehacks+Summary.pdf"},
+      {title:"What Got You Here Won’t Get You There", desc:"By Marshall Goldsmith", img:"image copy 55.png", link:"https://chools.in/wp-content/uploads/What-got-you-here-wont-get-you-there-_-how-successful-people-become-even-more-successful-PDFDrive-.pdf"}, 
+      {title:"The One Thing", desc:"By Gary Keller", img:"image copy 56.png", link:"https://dn790007.ca.archive.org/0/items/TheONEThing_201809/The-ONE-Thing.pdf"},
+      {title:"The Success Principles", desc:"By Jack Canfield", img:"image copy 57.png", link:"https://librarykvmsmd.wordpress.com/wp-content/uploads/2015/04/the-success-principles-jack-canfield-1.pdf"}
+    ];
+
+    function renderBooks(list){
+      const grid = document.getElementById("booksGrid");
+      grid.innerHTML = '';
+      const userHasPremium = hasPremium();
+
+      list.forEach(book => {
+        const div = document.createElement('div');
+        div.className = 'book';
+        const showBadge = book.premium && !userHasPremium;
+        div.innerHTML = `
+          ${showBadge ? `<span class="premium-tag">PREMIUM</span>` : ''}
+          <img src="${book.img}" alt="${book.title}">
+          <div class="book-info">
+            <p class="book-title">${book.title}</p>
+            <p class="book-desc">${book.desc}</p>
+          </div>
+        `;
+        div.addEventListener('click', () => {
+          if(book.premium && !userHasPremium){
+            window.location.href = 'premium.html';
+            return;
+          }
+          const url = `bookopen.html?title=${encodeURIComponent(book.title)}&desc=${encodeURIComponent(book.desc)}&img=${encodeURIComponent(book.img)}&link=${encodeURIComponent(book.link)}`;
+          window.location.href = url;
+        });
+        grid.appendChild(div);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderBooks(booksData);
+
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        if(!q) return renderBooks(booksData);
+        const filtered = booksData.filter(b => (b.title + ' ' + (b.desc||'')).toLowerCase().includes(q));
+        renderBooks(filtered);
+      });
+    });
+  </script>
+</body>
+</html>

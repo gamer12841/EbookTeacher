@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EbookTeacher — Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{--brand:#f75454;--ink:#111;--muted:#666;--bg:#fff;--cta:#ff7a1a;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);padding-bottom:78px;}
+
+    /* NAVBAR */
+    .navbar{display:flex;justify-content:space-between;align-items:center;background:#111;color:#fff;padding:15px 20px;position:sticky;top:0;z-index:100;}
+    .logo{font-size:24px;font-weight:800;letter-spacing:1px;}
+    .highlight{color:var(--brand);}
+    .menu-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:28px;display:block;}
+
+    /* Sidebar */
+    .sidebar{
+      position:fixed;
+      top:0; left:-260px;
+      height:100%;            /* ✅ full height */
+      width:260px;
+      background:#111;
+      color:#fff;
+      transition:left .3s ease;
+      z-index:9999;           /* ✅ above bottom nav */
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+    }
+    .sidebar.active{left:0;}
+    .sidebar h3{margin-bottom:20px;font-size:22px;font-weight:800;}
+    .sidebar a{display:flex;align-items:center;gap:12px;padding:14px 0;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.1);font-size:18px;}
+    .sidebar a i{font-size:20px;}
+    .sidebar a:hover{color:var(--brand);}
+    .sidebar-close{position:absolute;top:15px;right:15px;font-size:24px;background:none;border:none;cursor:pointer;color:#fff;}
+
+    /* HERO */
+    .hero{padding:50px 20px;text-align:center;background:radial-gradient(circle at top left,#ffecec,transparent),radial-gradient(circle at bottom right,#eef3ff,transparent);}
+    .hero-title{font-size:36px;font-weight:900;margin-bottom:12px;line-height:1.2;}
+    .hero-sub{font-size:18px;color:var(--muted);margin-bottom:25px;font-weight:500;}
+    .cta{background:var(--cta);color:#fff;text-decoration:none;padding:14px 24px;border-radius:10px;font-weight:700;font-size:16px;box-shadow:0 4px 12px rgba(255,122,26,.3);transition:all .2s;}
+    .cta:hover{transform:scale(1.05);}
+
+    /* CAROUSEL */
+    .carousel-container{position:relative;padding:30px 20px;}
+    .carousel-title{font-size:22px;font-weight:700;margin-bottom:15px;}
+    .carousel{display:flex;overflow-x:auto;scroll-behavior:smooth;gap:15px;padding:10px;}
+    .carousel::-webkit-scrollbar{display:none;}
+    .book{flex:0 0 160px;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.06);padding:10px;text-align:center;cursor:pointer;}
+    .book img{width:100%;height:200px;object-fit:cover;border-radius:8px;}
+    .book-title{margin-top:8px;font-size:14px;font-weight:600;line-height:1.3;}
+    .arrow{position:absolute;top:50%;transform:translateY(-50%);background:#111;color:#fff;border:none;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.2);}
+    .arrow.left{left:5px;}
+    .arrow.right{right:5px;}
+
+    /* DISCOVER */
+    .discover{padding:30px 20px;}
+    .discover-title{font-size:22px;font-weight:700;margin-bottom:20px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+    .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.08);display:flex;flex-direction:column;}
+    .card img{width:100%;height:180px;object-fit:cover;}
+    .card-body{padding:12px;display:flex;flex-direction:column;flex:1;}
+    .card-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+    .card-author{font-size:13px;color:var(--muted);margin-bottom:8px;}
+    .card-desc{font-size:13px;color:#444;flex:1;margin-bottom:10px;line-height:1.3;}
+    .read-btn{background:var(--brand);color:#fff;text-align:center;padding:8px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;transition:0.2s;}
+    .read-btn:hover{background:#d93a3a;}
+
+    /* TABBAR */
+    .tabbar{position:fixed;bottom:0;left:0;right:0;height:70px;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:space-around;align-items:center;box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:500;}
+    .tabbar a{flex:1;text-align:center;text-decoration:none;color:#444;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+    .tabbar a i{font-size:24px;}
+    .tabbar a.active{color:var(--brand);}
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">Ebook<span class="highlight">Teacher</span></div>
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+  </header>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-close" onclick="toggleMenu()">✖</button>
+    <h3>Menu</h3>
+    <a href="mobile.html"><i class="fa-solid fa-house"></i> Home</a>
+    <a href="book.html"><i class="fa-solid fa-magnifying-glass"></i> Search Books</a>
+    <a href="bookmark.html"><i class="fa-solid fa-bookmark"></i> Bookmarks</a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    <a href="premium.html"><i class="fa-solid fa-crown"></i> Premium</a>
+    <a href="feedback.html"><i class="fa-solid fa-comment-dots"></i> Feedback</a> <!-- ✅ Feedback -->
+    <a href="#" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1 class="hero-title">Listen &amp; Learn</h1>
+    <p class="hero-sub">Millions of books, free for you. Start learning today!</p>
+    <a href="book.html" class="cta">Start Reading</a>
+  </section>
+
+  <!-- CAROUSEL -->
+  <section class="carousel-container">
+    <h2 class="carousel-title">Popular Books</h2>
+    <button class="arrow left" onclick="scrollCarousel(-1)">‹</button>
+    <div class="carousel" id="bookCarousel"></div>
+    <button class="arrow right" onclick="scrollCarousel(1)">›</button>
+  </section>
+
+  <!-- DISCOVER -->
+  <section class="discover">
+    <h2 class="discover-title">Discover More Books</h2>
+    <div class="grid">
+      <div class="card">
+        <img src="image copy 3.png">
+        <div class="card-body">
+          <p class="card-title">Atomic Habits</p>
+          <p class="card-author">James Clear</p>
+          <p class="card-desc">An easy & proven way to build good habits and break bad ones.</p>
+          <a href="book.html" class="read-btn">Read Now</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="image copy 19.png" alt="">
+        <div class="card-body">
+          <p class="card-title">Deep Work</p>
+          <p class="card-author">Cal Newport</p>
+          <p class="card-desc">Rules for focused success in a distracted world.</p>
+          <a href="book.html" class="read-btn">Read Now</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="image.png" alt="">
+        <div class="card-body">
+          <p class="card-title">Rich Dad Poor Dad</p>
+          <p class="card-author">Robert Kiyosaki</p>
+          <p class="card-desc">What the rich teach their kids about money that the poor do not.</p>
+          <a href="book.html" class="read-btn">Read Now</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="image copy 58.png" alt="">
+        <div class="card-body">
+          <p class="card-title">The Alchemist</p>
+          <p class="card-author">Paulo Coelho</p>
+          <p class="card-desc">A journey of following your dreams and listening to your heart.</p>
+          <a href="book.html" class="read-btn">Read Now</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM NAV -->
+  <nav class="tabbar">
+    <a href="mobile.html" class="active"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="book.html"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
+    <a href="bookmark.html"><i class="fa-solid fa-bookmark"></i><span>Bookmarks</span></a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdDkomwDZ1EAAysrH9XbMq5viRf2deSS0",
+      authDomain: "ebookteacher-ba882.firebaseapp.com",
+      projectId: "ebookteacher-ba882",
+      storageBucket: "ebookteacher-ba882.appspot.com",
+      messagingSenderId: "475858350442",
+      appId: "1:475858350442:web:4acebed9cf61c80ee6b513",
+      measurementId: "G-7JNBPQ6Y26"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.logoutUser = async function(){
+      try {
+        await signOut(auth);
+        localStorage.removeItem("currentUserId");
+        alert("Logged out successfully!");
+        window.location.href = "index.html";
+      } catch(err){ alert("Logout failed: " + err.message); }
+    }
+
+    window.toggleMenu = function(){
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+
+    window.scrollCarousel = function(direction){
+      document.getElementById("bookCarousel").scrollBy({left:direction*200,behavior:"smooth"});
+    }
+
+    const popularBooks = [
+      {title:"The Intelligent Investor",author:"Benjamin Graham",img:"image copy.png",link:"https://drive.google.com/file/d/0BwEKYdmMaJIGaEtVYkROc0lLSU0/view"},
+      {title:"Think And Grow Rich",author:"Napoleon Hill",img:"image copy 2.png",link:"https://www.henryarmstrongfoundation.org/f/think-and-grow-rich-napoleon-hill_text[1].pdf333.pdf"},
+      {title:"Atomic Habits",author:"James Clear",img:"image copy 3.png",link:"https://drive.google.com/file/d/1eAZMdXO-Zn4_90TV365KMpIqfxUy7J0t/view"},
+      {title:"The Psychology of Money",author:"Morgan Housel",img:"image copy 4.png",link:"https://hostnezt.com/cssfiles/general/the-psychology-of-money-by-morgan-housel.pdf"}
+    ];
+
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const carousel=document.getElementById("bookCarousel");
+      popularBooks.forEach(book=>{
+        const div=document.createElement("div");
+        div.className="book";
+        div.innerHTML=`<img src="${book.img}" alt="${book.title}"><p class="book-title">${book.title}</p>`;
+        div.onclick=()=>window.location.href=`bookopen.html?title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}&img=${encodeURIComponent(book.img)}&link=${encodeURIComponent(book.link)}`;
+        carousel.appendChild(div);
+      });
+    });
+  </script>
+</body>
+</html>
