@@ -72,42 +72,60 @@
       </article>
     </section>
 
-    <p class="note">💡 After you pay via UPI, we’ll verify and activate your premium manually.</p>
+    <p class="note">💡 Pay via UPI, then confirm payment to activate premium automatically.</p>
   </main>
 
   <script>
-    // keys
+    // localStorage keys
     function premiumKey(user){ return `premium_expiry__${user}`; }
     function planKey(user){ return `premium_plan__${user}`; }
-
-    // get current user
     function getCurrentUser(){ return localStorage.getItem('currentUserId'); }
 
-    // Start purchase flow
     function startPurchase(plan, days, amount){
       let user = getCurrentUser();
       if(!user){
-        const goLogin = confirm("You must be logged in to purchase.\nPress OK to go to Login page.\nCancel to use a test user.");
-        if(goLogin){ window.location.href = "login.html"; return; }
-        else {
-          const temp = prompt("Enter a temporary test user id (for local testing).");
-          if(!temp) return;
-          localStorage.setItem('currentUserId', temp);
-          user = temp;
-        }
+        const temp = prompt("Enter your username to continue:");
+        if(!temp) return;
+        localStorage.setItem("currentUserId", temp);
+        user = temp;
       }
 
-      // ✅ Put your UPI ID here
-      const upiId = "mramajogachari63@icici"; // Example: 9876543210@paytm
+      // ✅ Replace with your real UPI ID
+      const upiId = "ebookteacher@ybl"; 
       const upiDeepLink = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent('EbookTeacher')}&am=${amount}&cu=INR&tn=${encodeURIComponent(plan)}`;
-
-      // Open UPI app
       window.location.href = upiDeepLink;
 
-      // ⚠️ No auto-activation!
-      // You must manually verify payment (check your bank or later use server-side verification)
-      // Then activate premium by setting expiry in Firestore or admin panel.
+      // Ask for confirmation after payment
+      setTimeout(()=>{
+        if(confirm("✅ Did you complete the payment for " + plan + "?")){
+          activatePremium(user, plan, days);
+        } else {
+          alert("❌ Payment not confirmed. Try again.");
+        }
+      }, 3000);
     }
+
+    function activatePremium(user, plan, days){
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + days);
+      localStorage.setItem(premiumKey(user), String(expiry.getTime()));
+      localStorage.setItem(planKey(user), plan);
+      alert(`🎉 ${plan} activated until ${expiry.toDateString()}`);
+      window.location.href = "book.html";
+    }
+
+    // Auto-check expiry
+    (function checkPremium(){
+      const user = getCurrentUser();
+      if(!user) return;
+      const exp = localStorage.getItem(premiumKey(user));
+      if(!exp) return;
+      if(Date.now() > parseInt(exp)){
+        localStorage.removeItem(premiumKey(user));
+        localStorage.removeItem(planKey(user));
+        alert("⚠️ Your premium has expired.");
+      }
+    })();
   </script>
 </body>
 </html>
