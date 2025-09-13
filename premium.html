@@ -47,18 +47,20 @@
     <p class="premium-subtitle">Choose a plan that fits your needs</p>
 
     <section class="premium-grid">
+      <!-- ✅ 1 Day Demo Plan -->
       <article class="premium-card">
-        <img class="premium-media" src="image copy 59.png" alt="Basic Premium">
+        <img class="premium-media" src="image copy 59.png" alt="1 Day Demo">
         <div class="premium-info">
           <div>
-            <div class="premium-name">Basic Premium</div>
-            <div class="premium-price">₹199 / month</div>
-            <div class="premium-features">• Access to 1,000+ ebooks <br>• Ad-free reading <br>• 1 month premium</div>
+            <div class="premium-name">1 Day Demo</div>
+            <div class="premium-price">₹10 / 1 day</div>
+            <div class="premium-features">• Access to 1,000+ ebooks <br>• Ad-free reading <br>• Valid for 1 day only</div>
           </div>
-          <button class="purchase-btn" onclick="startPurchase('Basic Premium', 30, 199)">Purchase</button>
+          <button class="purchase-btn" onclick="startPurchase('1 Day Demo', 1, 10)">Purchase</button>
         </div>
       </article>
 
+      <!-- ✅ Pro Premium Plan -->
       <article class="premium-card">
         <img class="premium-media" src="image copy 59.png" alt="Pro Premium">
         <div class="premium-info">
@@ -72,7 +74,7 @@
       </article>
     </section>
 
-    <p class="note">💡 Pay via UPI, then confirm payment to activate premium automatically.</p>
+    <p class="note">💡 Pay via UPI to activate your premium instantly.</p>
   </main>
 
   <script>
@@ -91,18 +93,16 @@
       }
 
       // ✅ Replace with your real UPI ID
-      const upiId = "mgrallinoneservices@cnrb"; 
+      const upiId = "mramajogachari63@icici"; 
       const upiDeepLink = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent('EbookTeacher')}&am=${amount}&cu=INR&tn=${encodeURIComponent(plan)}`;
+      
+      // Open UPI app
       window.location.href = upiDeepLink;
 
-      // Ask for confirmation after payment
+      // ⏳ Auto-activate after payment attempt (no alerts)
       setTimeout(()=>{
-        if(confirm("✅ Did you complete the payment for " + plan + "?")){
-          activatePremium(user, plan, days);
-        } else {
-          alert("❌ Payment not confirmed. Try again.");
-        }
-      }, 3000);
+        activatePremium(user, plan, days);
+      }, 2000);
     }
 
     function activatePremium(user, plan, days){
@@ -110,8 +110,7 @@
       expiry.setDate(expiry.getDate() + days);
       localStorage.setItem(premiumKey(user), String(expiry.getTime()));
       localStorage.setItem(planKey(user), plan);
-      alert(`🎉 ${plan} activated until ${expiry.toDateString()}`);
-      window.location.href = "book.html";
+      window.location.href = "book.html"; // Redirect directly
     }
 
     // Auto-check expiry
@@ -123,10 +122,8 @@
       if(Date.now() > parseInt(exp)){
         localStorage.removeItem(premiumKey(user));
         localStorage.removeItem(planKey(user));
-        alert("⚠️ Your premium has expired.");
       }
     })();
   </script>
 </body>
 </html>
-
